@@ -10,8 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.18.0",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
+    "html-table-to-json": "^0.4.0",
     "lodash": "^4.17.11",
     "mocha": "^5.2.0",
     "mongoose": "^5.3.12"
