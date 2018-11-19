@@ -11,7 +11,7 @@ var app = express();
 app.use(express.static(__dirname+'./../public'));
 app.use(bodyParser.json());
 
-app.get('/grabprices',async (req,res)=>{
+app.get('/updateprices',async (req,res)=>{
     let response = await axios.get('http://alchmate.com/rs3Alch.php');
     let responseData = JSON.stringify(response.data);
     let natureRuneLineRegex = RegExp(/(placeholder=\\")(\d*)\\/);
@@ -25,9 +25,18 @@ app.get('/grabprices',async (req,res)=>{
     let jsonTable = new jsonTables(table);
     jsonTable.results[0].splice(0,1); //drop table header
     let cleanData = jsonTable.results[0].filter((val)=>parseInt(val["6"])>0);
-    for(let item in cleanData[0]){
-        delete cleanData[0][item]["8"]; //remove timestamp
-        delete cleanData[0][item]["7"]; //remove member only flag
+
+    for(let item in cleanData){
+        delete cleanData[item]["8"]; //remove timestamp
+        delete cleanData[item]["7"]; //remove member only flag
+        cleanData[item]["2"] = parseInt(cleanData[item]["2"].split(',').join(''));
+        cleanData[item]["3"] = parseInt(cleanData[item]["3"].split(',').join(''));
+        cleanData[item]["4"] = parseInt(cleanData[item]["4"].split(',').join(''));
+        cleanData[item]["6"] = parseInt(cleanData[item]["6"].split(',').join(''));
+    }
+
+    for(let item in cleanData){
+        console.log(cleanData[item]);
     }
     const keyMap = {
         "1":"itemName",
@@ -40,8 +49,8 @@ app.get('/grabprices',async (req,res)=>{
 
     let itemData = cleanData;
     
-    let testItem = new Item({"itemName":"ass","cost":4,"alchValue":5,"alchProfit":6,"lastUpdated":"ass","exchangeLimit":4});
-    testItem.save();
+    // let testItem = new Item({"itemName":"ass","cost":4,"alchValue":5,"alchProfit":6,"lastUpdated":"ass","exchangeLimit":4});
+    // testItem.save();
 
     for(let item in itemData){
         let newItem = {};
@@ -65,6 +74,22 @@ app.get('/grabprices',async (req,res)=>{
         }catch(exc){
             console.log(exc);
         }
+    }
+});
+
+app.get('/grabprices',async (req,res)=>{
+    try{
+        let prices = await Item.find({}).select({"_id":0,"__v":0});
+        if(prices.length==0){
+            res.status(400).send('Could not get items');
+            throw new Error('Could not get items');
+        }
+        else{
+            res.status(200).send(prices);
+        }
+    }
+    catch(exc){
+
     }
 });
 
